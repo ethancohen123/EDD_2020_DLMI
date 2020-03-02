@@ -14,7 +14,7 @@ import tifffile as tiff
 from .utils import get_square, resize_and_crop, normalize, hwc_to_chw
 
 
-def resize_and_crop_mask(tiffImage, w=512, h=512, classes=5,  scale=0.5, final_height=None):
+def resize_and_crop_mask(tiffImage, w=512, h=512, classes=5, scale=0.5, final_height=None):
     newW = int(w * scale)
     newH = int(h * scale)
     if not final_height:
@@ -96,4 +96,5 @@ def get_imgs_and_masks(ids, dir_img, dir_mask, scale, maxWidth, maxHeight, n_cla
     masks = to_cropped_imgs_mask(
         ids, dir_mask, '.tif', scale, maxWidth, maxHeight, n_classes)
     masks_switched = map(hwc_to_chw, masks)
+    # masks_switched = masks_switched.swapaxes(1, 2)
     return list(imgs_normalized), list(masks_switched)

@@ -15,6 +15,11 @@ from utils.utils import batch
 from utils.data_Loader import get_imgs_and_masks, split_train_val
 from utils.visualize import inputImageViz
 
+import matplotlib.pyplot as plt
+
+
+import torch.nn.functional as F
+
 from tqdm import tqdm
 
 
@@ -231,11 +236,31 @@ class EDDDataset(Dataset):
         self.imgs_normalized = imgs_normalized
         self.masks_switched = masks_switched
 
+        for i in range(len(masks_switched)):
+            masks_switched[i] = masks_switched[i].swapaxes(1, 2)
+
+        # i = 0
+        # while True:
+        #     if np.sum(self.masks_switched[i][0].nonzero()) > 0:
+        #         plt.imsave('mask.png', self.masks_switched[i][0])
+        #         print('shape', self.imgs_normalized[i].shape)
+        #         plt.imsave('img.png', self.imgs_normalized[i].swapaxes(
+        #             0, 2).swapaxes(0, 1))
+        #         print('DONE')
+        #         1 / 0
+        #     i += 1
+
     def __len__(self):
         return len(self.imgs_normalized)
 
     def __getitem__(self, idx):
         return self.imgs_normalized[idx], self.masks_switched[idx]
+
+
+def to_binary(output_pred):
+    output_pred = F.relu(output_pred)
+    output_pred[output_pred.nonzero().split(1, dim=1)] = 1.0
+    return output_pred
 
 
 if __name__ == '__main__':
@@ -273,12 +298,16 @@ if __name__ == '__main__':
         model.to(device)
         for i, batch in tqdm(enumerate(dataloader_train)):
             imgs, true_masks = batch
+
             # inputImageViz(imgs, true_masks)
 
             imgs = imgs.float().to(device)
             masks_gd = true_masks.float().to(device)
 
-            masks_pred = model(imgs)
+            output_pred = model(imgs)
+            masks_pred = to_binary(output_pred)
+            # 1 / 0
+
             # inputImageViz(imgs.detach().cpu().numpy(),
             #               masks_pred.detach().cpu().numpy())
             optimizer = torch.optim.SGD(model.parameters(), lr=args.lr)
