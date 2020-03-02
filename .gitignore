@@ -3,4 +3,5 @@
 *.png
 *.tif
 */.DS_Store
+sampleDataLoader_semantic/data
 
